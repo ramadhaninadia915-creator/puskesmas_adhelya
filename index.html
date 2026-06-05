@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Puskesmas (Simpus)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #f4fcfb;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);
+            color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
+            text-align: center;
+        }
+        header p {
+            margin-top: 5px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        /* Dashboard Statistik Mini */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+            border-left: 5px solid #0d9488;
+        }
+        .stat-box h3 {
+            font-size: 0.85rem;
+            color: #718096;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .stat-box p {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #1a202c;
+        }
+        /* Layout Utama */
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+        }
+        @media (max-width: 950px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .card h2 {
+            font-size: 1.2rem;
+            color: #0d9488;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0fdfa;
+            padding-bottom: 8px;
+        }
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .form-group textarea {
+            resize: vertical;
+            height: 70px;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-submit {
+            background-color: #0d9488;
+            color: white;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background-color: #0f766e;
+        }
+        .btn-delete {
+            background-color: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
+            font-size: 0.8rem;
+            padding: 5px 10px;
+        }
+        .btn-delete:hover {
+            background-color: #e53e3e;
+            color: white;
+        }
+        /* Tabel */
+        .table-area {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        th {
+            background-color: #f0fdfa;
+            color: #0f766e;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #fbfdfd;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-umum { background: #e0f2fe; color: #0369a1; }
+        .badge-gigi { background: #fef3c7; color: #b45309; }
+        .badge-kia { background: #fce7f3; color: #be185d; }
+        .badge-lansia { background: #f3e8ff; color: #6b21a8; }
+        
+        .empty-text { color: #a0aec0; font-style: italic; text-align: center; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Sistem Informasi Rekam Medis Puskesmas</h1>
+        <p>Pencatatan data kunjungan pasien, diagnosis medis, dan manajemen poliklinik</p>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <h3>Total Kunjungan Pasien</h3>
+            <p id="totalKunjungan">0 Pasien</p>
+        </div>
+        <div class="stat-box" style="border-left-color: #3b82f6;">
+            <h3>Nomor RM Berikutnya</h3>
+            <p id="nextRM">RM0001</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <h2>Pendaftaran Kunjungan Pasien</h2>
+            <form id="formPuskesmas">
+                <div class="form-group">
+                    <label for="namaPasien">Nama Lengkap Pasien</label>
+                    <input type="text" id="namaPasien" required placeholder="Contoh: Ahmad Hidayat">
+                </div>
+                <div class="form-group">
+                    <label for="jenisKelamin">Jenis Kelamin</label>
+                    <select id="jenisKelamin" required>
+                        <option value="">-- Pilih --</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="poliTujuan">Poliklinik Tujuan</label>
+                    <select id="poliTujuan" required>
+                        <option value="">-- Pilih Poli --</option>
+                        <option value="Poli Umum">Poli Umum</option>
+                        <option value="Poli Gigi">Poli Gigi</option>
+                        <option value="Poli KIA">Poli KIA (Anak/Ibu)</option>
+                        <option value="Poli Lansia">Poli Lansia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="keluhan">Keluhan Utama</label>
+                    <textarea id="keluhan" required placeholder="Contoh: Demam tinggi sudah 3 hari, pusing..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="diagnosa">Diagnosis Dokter</label>
+                    <input type="text" id="diagnosa" required placeholder="Contoh: Influenza / Febris">
+                </div>
+                <div class="form-group">
+                    <label for="terapiObat">Terapi / Resep Obat</label>
+                    <textarea id="terapiObat" required placeholder="Contoh: Paracetamol 500mg (3x1), Vitamin C"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Simpan Rekam Medis</button>
+            </form>
+        </div>
+
+        <div class="card table-area">
+            <h2>Kartu Log Rekam Medis Pasien</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No. RM</th>
+                        <th>Nama Pasien (L/P)</th>
+                        <th>Poliklinik</th>
+                        <th>Keluhan & Diagnosis</th>
+                        <th>Terapi Obat</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const formPuskesmas = document.getElementById('formPuskesmas');
+    const tabelBody = document.getElementById('tabelBody');
+
+    // Mengambil data dari localStorage atau inisialisasi array kosong
+    let dbPuskesmas = JSON.parse(localStorage.getItem('databasePuskesmas')) || [];
+
+    // Fungsi generate nomor RM otomatis (Contoh: RM0001, RM0002)
+    function dapatkanNomorRMBaru() {
+        let nomorUrut = dbPuskesmas.length + 1;
+        return "RM" + nomorUrut.toString().padStart(4, '0');
+    }
+
+    // Mengatur warna Badge Poliklinik
+    function getBadgeClass(poli) {
+        switch(poli) {
+            case 'Poli Umum': return 'badge-umum';
+            case 'Poli Gigi': return 'badge-gigi';
+            case 'Poli KIA': return 'badge-kia';
+            case 'Poli Lansia': return 'badge-lansia';
+            default: return '';
+        }
+    }
+
+    // Update Angka Indikator di Atas Form
+    function updateDashboardStatistik() {
+        document.getElementById('totalKunjungan').innerText = dbPuskesmas.length + " Pasien";
+        document.getElementById('nextRM').innerText = dapatkanNomorRMBaru();
+    }
+
+    // Render data array ke tabel HTML
+    function renderTabel() {
+        tabelBody.innerHTML = '';
+
+        if(dbPuskesmas.length === 0) {
+            tabelBody.innerHTML = `<tr><td colspan="6" class="empty-text">Belum ada kunjungan pasien hari ini.</td></tr>`;
+            updateDashboardStatistik();
+            return;
+        }
+
+        dbPuskesmas.forEach((pasien, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span style="font-family: monospace; font-weight: bold; color: #0f766e;">${pasien.noRM}</span></td>
+                <td>
+                    <strong>${pasien.nama}</strong> <br>
+                    <small style="color: #64748b;">${pasien.jk === 'Laki-laki' ? 'L' : 'P'}</small>
+                </td>
+                <td><span class="badge ${getBadgeClass(pasien.poli)}">${pasien.poli}</span></td>
+                <td>
+                    <span style="font-size: 0.85rem; display:block; margin-bottom:2px;"><strong>Keluhan:</strong> ${pasien.keluhan}</span>
+                    <span style="font-size: 0.85rem; color: #b91c1c;"><strong>Diag:</strong> ${pasien.diagnosa}</span>
+                </td>
+                <td style="font-size: 0.85rem; color: #1e293b; background: #f8fafc;">${pasien.obat}</td>
+                <td class="text-center">
+                    <button class="btn-delete" onclick="hapusPasien(${index})">Hapus</button>
+                </td>
+            `;
+            tabelBody.appendChild(tr);
+        });
+
+        updateDashboardStatistik();
+    }
+
+    // Fungsi Handler Tambah Data Pasien Kunjungan Baru
+    formPuskesmas.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const noRM = dapatkanNomorRMBaru();
+        const nama = document.getElementById('namaPasien').value;
+        const jk = document.getElementById('jenisKelamin').value;
+        const poli = document.getElementById('poliTujuan').value;
+        const keluhan = document.getElementById('keluhan').value;
+        const diagnosa = document.getElementById('diagnosa').value;
+        const obat = document.getElementById('terapiObat').value;
+
+        const pasienBaru = { noRM, nama, jk, poli, keluhan, diagnosa, obat };
+        dbPuskesmas.push(pasienBaru);
+
+        // Simpan ke LocalStorage browser
+        localStorage.setItem('databasePuskesmas', JSON.stringify(dbPuskesmas));
+
+        formPuskesmas.reset();
+        renderTabel();
+    });
+
+    // Fungsi Hapus Data Medis Pasien
+    window.hapusPasien = function(index) {
+        if(confirm('Hapus log riwayat rekam medis pasien ini?')) {
+            dbPuskesmas.splice(index, 1);
+            
+            // Susun ulang nomor RM sisa agar selalu urut/sinkron (Opsional)
+            dbPuskesmas.forEach((pasien, idx) => {
+                pasien.noRM = "RM" + (idx + 1).toString().padStart(4, '0');
+            });
+
+            localStorage.setItem('databasePuskesmas', JSON.stringify(dbPuskesmas));
+            renderTabel();
+        }
+    }
+
+    // Jalankan render data saat halaman dimuat pertama kali
+    renderTabel();
+</script>
+
+</body>
+</html>
